@@ -1,0 +1,9 @@
+# Racket
+*.smt2
+compiled/
+
+# FPGA
+*.asc
+*.bin
+*.json
+*.rpt

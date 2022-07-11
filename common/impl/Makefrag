@@ -1,0 +1,57 @@
+MAKEFLAGS += -r
+MAKEFLAGS += -R
+
+ifndef PREFIX
+PREFIX := $(shell if riscv64-unknown-elf-objdump -i 2>&1 | grep 'elf64-big' >/dev/null 2>&1; \
+	then echo 'riscv64-unknown-elf-'; \
+	elif riscv64-linux-gnu-objdump -i 2>&1 | grep 'elf64-big' >/dev/null 2>&1; \
+	then echo 'riscv64-linux-gnu-'; \
+	else echo "***" 1>&2; \
+	echo "*** Error: Couldn't find an riscv64 version of GCC/binutils." 1>&2; \
+	echo "*** To turn off this error, run 'make PREFIX= ...'." 1>&2; \
+	echo "***" 1>&2; exit 1; fi)
+endif
+
+CC := $(PREFIX)gcc
+AS := $(PREFIX)as
+LD := $(PREFIX)ld
+OBJCOPY := $(PREFIX)objcopy
+OBJDUMP := $(PREFIX)objdump
+
+CFLAGS := -std=gnu18 -O2 -march=rv32i -mabi=ilp32 -fdata-sections -ffunction-sections -ffreestanding -g
+ASFLAGS := -march=rv32i -mabi=ilp32
+OBJDUMPFLAGS := --disassemble-all --source --section-headers --demangle
+LDFLAGS := --gc-sections -melf32lriscv -nostdlib
+BIN2COEFLAGS := --width 32 --fill 0
+
+GCC_LIB := $(shell $(CC) $(CFLAGS) -print-libgcc-file-name)
+
+%.bin: %.elf
+	$(OBJCOPY) $< -O binary $@
+
+%.o: %.s $(HEADERFILES)
+	$(AS) $(ASFLAGS) -c $< -o $@
+
+%.o: %.S $(HEADERFILES)
+	$(CC) $(ASFLAGS) -c $< -o $@
+
+%.o: %.c $(HEADERFILES)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+%.lst: %.elf
+	$(OBJDUMP) $(OBJDUMPFLAGS) $< > $@
+
+# FPGA
+
+FPGA_DEVICE := up5k
+FPGA_PACKAGE := sg48
+
+%.bin: %.asc
+	icepack $< $@
+
+%.rpt: %.asc
+	icetime -d $(FPGA_DEVICE) -mtr $@ $<
+
+%.asc: %.json %.pcf
+	$(eval SRC_$@ = $(patsubst %.asc, %, $@))
+	nextpnr-ice40 -ql $(SRC_$@).pnr.log --$(FPGA_DEVICE) --package $(FPGA_PACKAGE) --json $(SRC_$@).json --pcf $(SRC_$@).pcf --asc $@

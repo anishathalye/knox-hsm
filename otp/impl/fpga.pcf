@@ -1,0 +1,11 @@
+# 12 MHz clock
+set_io -nowarn CLK 35
+
+# Reset button
+set_io -nowarn BTN_N 10
+
+# UART
+set_io -nowarn CTS 4
+set_io -nowarn TX 2
+set_io -nowarn RX 47
+set_io -nowarn RTS 45

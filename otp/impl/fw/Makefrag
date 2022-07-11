@@ -1,0 +1,7 @@
+fw/%.mem: fw/%.bin
+	bin2coe $(BIN2COEFLAGS) --depth $(ROM_DEPTH) -i $< -o $@ --mem
+
+CLEAN_FILES += $(shell find fw -name '*.o') fw/*.bin fw/*.coe fw/*.lst fw/*.elf fw/*.mem
+
+fw/otp.elf: fw/rom.ld fw/startup.o fw/drivers.o fw/lib.o fw/mod.o fw/otp.o
+	$(LD) $(LDFLAGS) -T $^ -o $@
