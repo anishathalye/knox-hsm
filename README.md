@@ -81,7 +81,21 @@ include the specs (`spec/spec.rkt`) and emulators (`proof/emulator.rkt`).
       For development, adding the `#:skip-final-check #t` keyword at the top
       will enable debugging security proofs in the Racket REPL.
 
+## Docker image
+
+We provide a [Docker image] that includes all the dependencies. You can
+download it with `docker pull anishathalye/knox`.
+
+To mount the repository on `/knox-hsm` and get a shell in the Docker image,
+run:
+
+```bash
+docker run -it --rm -v "${PWD}/:/knox-hsm" -w /knox-hsm anishathalye/knox
+```
+
 ## Dependencies
+
+If you want to install the dependencies locally, here is what you need:
 
 - [RISC-V compiler toolchain]
 - [Yosys]
@@ -139,3 +153,4 @@ helpful:
 [icestorm]: https://github.com/YosysHQ/icestorm
 [nextpnr-ice40]: https://github.com/YosysHQ/nextpnr
 [iCEBreaker]: https://1bitsquared.com/products/icebreaker
+[Docker image]: https://hub.docker.com/repository/docker/anishathalye/knox
