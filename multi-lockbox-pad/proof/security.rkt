@@ -18,7 +18,7 @@
 (define concretize-all-circuits-lens
   (lens (list (lens 'circuit circuit-all-fields-lens)
               (lens 'emulator 'auxiliary circuit-all-fields-lens))))
- (define sim-overapproximate-lens
+ (define emulator-overapproximate-lens
  (lens 'emulator 'auxiliary
        (list #rx"^i_.*"
              #rx"^saved_.*"
@@ -42,7 +42,7 @@
       (subsumed-in! (sub1 steps) pos)))
 
 (concretize! (lens 'circuit (list 'state 'returned_value 'output_valid)) #:piecewise #t)
-(overapproximate! sim-overapproximate-lens)
+(overapproximate! emulator-overapproximate-lens)
 ;; replace spec state with AF(circuit)
 (define (sync-circuit-oracle!)
   (let* ([ckt (lens-view (lens 'term 'circuit) (current))]
@@ -106,7 +106,7 @@
 (for ([_ (in-range 8)])
   (concretize! concretize-all-circuits-lens #:piecewise #t)
   (step!))
-(overapproximate! sim-overapproximate-lens)
+(overapproximate! emulator-overapproximate-lens)
 (sync-circuit-oracle!)
 (subsumed! 0)
 (displayln "finished store case")

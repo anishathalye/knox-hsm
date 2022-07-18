@@ -27,22 +27,22 @@
      (extend-hintdb
       common-hintdb
       [case-split-slot (case-split-slot slot)]
-      [maybe-merge-after-recv (maybe-merge-after-recv #x36c)])]
+      [maybe-merge-after-recv (maybe-merge-after-recv #x344)])]
     [`(store ,slot ,pin ,data)
      (extend-hintdb
       common-hintdb
       [case-split-slot (case-split-slot slot)]
-      [maybe-merge-after-recv (maybe-merge-after-recv #x174)])]
+      [maybe-merge-after-recv (maybe-merge-after-recv #x16c)])]
     [`(delete ,slot)
      (extend-hintdb
       common-hintdb
       [case-split-slot (case-split-slot slot)]
-      [maybe-merge-after-recv (maybe-merge-after-recv #x36c)])]
+      [maybe-merge-after-recv (maybe-merge-after-recv #x344)])]
     [`(retrieve ,slot ,pin)
      (extend-hintdb
       common-hintdb
       [case-split-slot (case-split-slot slot)]
-      [maybe-merge-after-recv (maybe-merge-after-recv #x244)])]))
+      [maybe-merge-after-recv (maybe-merge-after-recv #x234)])]))
 
 (define (maybe-merge-after-recv instr-addr)
   (tactic

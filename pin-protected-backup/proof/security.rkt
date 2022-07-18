@@ -24,7 +24,7 @@
   (define cs (lens-view (lens 'circuit 'wrapper.soc.cpu.cpu_state) t))
   (define s (lens-view (lens 'emulator 'auxiliary 'circuit 'wrapper.soc.cpu.reg_pc) t))
   (define ss (lens-view (lens 'emulator 'auxiliary 'circuit 'wrapper.soc.cpu.cpu_state) t))
-  (printf "ckt: ~v ~v sim: ~v ~v\n" c cs s ss))
+  (printf "ckt: ~v ~v emu: ~v ~v\n" c cs s ss))
 
 (define (step-n! n)
   (unless (zero? n)
@@ -57,7 +57,7 @@
       (loop (add1 i)))))
 
 ;; insight: we actually don't care what's going on inside the UART,
-;; just that the value read by the circuit and the simulated circuit in
+;; just that the value read by the circuit and the emulated circuit in
 ;; uart_read is the same
 
 (define (match-abstract! l [name #f])
@@ -207,7 +207,6 @@
   ;; if CTS was not asserted, then the circuit is still in the "embryo"
   ;; state
   (prepare!) ; prepare first, so we can case-split on inputs _before_ stepping
-  #;(step!)
   (cases*! (list (lens-view (lens 'term 'circuit 'cts) (current))))
   (concretize! (lens (list (lens 'circuit (list 'cts))
                                    (lens 'emulator 'auxiliary 'circuit (list 'cts)))))
@@ -254,7 +253,7 @@
             (range spec:DATA-BYTES))
 
   ;; step until we're close to computing entry and then case analyze
-  (step-until! (pc-is (bv #x174 32)))
+  (step-until! (pc-is (bv #x16c 32)))
   (cases! (list (equal? (bvand (bv #xff 32) slot) (bv 0 32))
                         (equal? (bvand (bv #xff 32) slot) (bv 1 32))
                         (equal? (bvand (bv #xff 32) slot) (bv 2 32))
@@ -267,12 +266,12 @@
     (overapproximate-predicate! #t)
 
     ;; is entry valid or not?
-    (step-until! (branch-at (bv #x19c 32)))
+    (step-until! (branch-at (bv #x190 32)))
     (define invalid (bvzero? (lens-view (lens 'circuit 'wrapper.soc.cpu.cpuregs 14) (set-term (current)))))
     (cases! (list invalid (! invalid)))
     ;; valid
     (concretize-branch!)
-    (step-until! (pc-is (bv #x1d8 32))) ; remember that it's invalid until store passes commit point
+    (step-until! (pc-is (bv #x1cc 32))) ; remember that it's invalid until store passes commit point
     (replace! (lens 'emulator 'oracle) (AbsF (lens-view (lens 'term 'circuit) (current)))) ; clean up oracle state so we can forget predicate
     (overapproximate-predicate! #t)
     (step-past-uart-write!)
@@ -291,7 +290,7 @@
   (case-slot!))
 
 (define (case-delete! slot)
-  (step-until! (pc-is (bv #xe0 32)))
+  (step-until! (pc-is (bv #xdc 32)))
   (cases! (list (equal? (bvand (bv #xff 32) slot) (bv 0 32))
                         (equal? (bvand (bv #xff 32) slot) (bv 1 32))
                         (equal? (bvand (bv #xff 32) slot) (bv 2 32))
@@ -328,29 +327,30 @@
 
 (define (case-retrieve! slot)
   (for-each (lambda (i)
-              (printf "store, reading pin[~a]~n" i)
+              (printf "retrieve, reading pin[~a]~n" i)
               (step-past-uart-read! (format "pin[~a]" i)))
             (range spec:PIN-BYTES))
-  (step-until! (pc-is (bv #x248 32)))
+  (step-until! (pc-is (bv #x244 32)))
   (cases! (list (equal? (bvand (bv #xff 32) slot) (bv 0 32))
                         (equal? (bvand (bv #xff 32) slot) (bv 1 32))
                         (equal? (bvand (bv #xff 32) slot) (bv 2 32))
                         (equal? (bvand (bv #xff 32) slot) (bv 3 32))))
   (define (case-slot! slot)
-    (concretize! (lens (list (lens 'circuit 'wrapper.soc.cpu.cpuregs 20)
-                                     (lens 'emulator 'auxiliary 'circuit 'wrapper.soc.cpu.cpuregs 20))))
+    (concretize! (lens (list (lens 'circuit 'wrapper.soc.cpu.cpuregs (list 9 15))
+                                     (lens 'emulator 'auxiliary 'circuit 'wrapper.soc.cpu.cpuregs (list 9 15)))))
 
-    (step-until! (branch-at (bv #x264 32)))
+    (step-until! (branch-at (bv #x250 32)))
     (define invalid (bvzero? (lens-view (lens 'circuit 'wrapper.soc.cpu.cpuregs 15) (set-term (current)))))
     (cases! (list invalid (! invalid)))
     (concretize-branch!)
+
     (step-past-uart-write!)
     (step-until! poweroff)
     (subsumed! 0)
     ;; valid
     (concretize-branch!)
-    (step-until! (branch-at (bv #x27c 32)))
-    (define exceeded (bvult (bv 9 32) (lens-view (lens 'circuit 'wrapper.soc.cpu.cpuregs 15) (set-term (current)))))
+    (step-until! (branch-at (bv #x264 32)))
+    (define exceeded (bvult (bv 9 32) (lens-view (lens 'circuit 'wrapper.soc.cpu.cpuregs 12) (set-term (current)))))
     (cases! (list exceeded (! exceeded)))
     (concretize-branch!)
     (step-past-uart-write!)
@@ -359,7 +359,7 @@
     ;; not exceeded
     ;; step until we branch on whether guess is correct
     (concretize-branch!)
-    (step-until! (branch-at (bv #x2bc 32)))
+    (step-until! (branch-at (bv #x2a0 32)))
     (define not-pin-eq (bvzero? (lens-view (lens 'circuit 'wrapper.soc.cpu.cpuregs 13) (set-term (current)))))
     (cases! (list not-pin-eq (! not-pin-eq)))
     ;; pin mismatch
@@ -397,7 +397,7 @@
 (define slot (step-past-uart-read! 'slot))
 
 ;; checking if slot is valid
-(step-until! (branch-at (bv #x370 32)) #t)
+(step-until! (branch-at (bv #x348 32)) #t)
 (cases*! (list (bvult (bv 3 32) (bvand (bv #xff 32) slot))))
 ;; this branch: invalid slot, we are done
 (concretize-branch!)
@@ -407,17 +407,17 @@
 (concretize-branch!)
 
 ;; store cmd?
-(step-until! (branch-at (bv #x374 32)) #t)
+(step-until! (branch-at (bv #x34c 32)) #t)
 (cases*! (list (bveq (bvand (bv #xff 32) cmd) (bv 3 32))))
 (concretize-branch!)
 (case-store! slot)
 
 ;; cmd is > 3 ? (invalid or retrieve)
 (concretize-branch!)
-(step-until! (branch-at (bv #x378 32)) #t)
+(step-until! (branch-at (bv #x350 32)) #t)
 (cases*! (list (bvult (bv 3 32) (bvand (bv #xff 32) cmd))))
 (concretize-branch!)
-(step-until! (branch-at (bv #x3a4 32)) #t)
+(step-until! (branch-at (bv #x37c 32)) #t)
 (cases*! (list (! (bveq (bvand (bv #xff 32) cmd) (bv 4 32)))))
 (concretize-branch!)
 ;; invalid
@@ -428,14 +428,14 @@
 (case-retrieve! slot)
 
 (concretize-branch!)
-(step-until! (branch-at (bv #x380 32)) #t)
+(step-until! (branch-at (bv #x358 32)) #t)
 (cases*! (list (bveq (bvand (bv #xff 32) cmd) (bv 1 32))))
 (concretize-branch!)
 ;; status
 (case-status! slot)
 
 (concretize-branch!)
-(step-until! (branch-at (bv #x388 32)) #t)
+(step-until! (branch-at (bv #x360 32)) #t)
 (cases*! (list (! (bveq (bvand (bv #xff 32) cmd) (bv 2 32)))))
 (concretize-branch!)
 ;; invalid

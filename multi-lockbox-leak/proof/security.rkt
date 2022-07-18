@@ -21,7 +21,7 @@
 (define concretize-all-circuits-lens
   (lens (list (lens 'circuit circuit-all-fields-lens)
               (lens 'emulator 'auxiliary 'circuit circuit-all-fields-lens))))
-(define sim-overapproximate-lens
+(define emulator-overapproximate-lens
   (lens 'emulator 'auxiliary 'circuit
         (list #rx"^i_.*"
               #rx"^saved_.*"
@@ -31,7 +31,7 @@
               (lens 'password (list 0 1)))))
 
 (concretize! (lens 'circuit (list 'state 'returned_value 'output_valid)) #:piecewise #t)
-(overapproximate! sim-overapproximate-lens)
+(overapproximate! emulator-overapproximate-lens)
 
 (overapproximate*!
  (lens 'emulator 'auxiliary 'circuit 'tags (list 0 1))

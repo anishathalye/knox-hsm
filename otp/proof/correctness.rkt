@@ -32,20 +32,20 @@
      (extend-hintdb
       common-hintdb
       [overapproximate-boot-pc (overapproximate-pc (R f1 c1))]
-      [maybe-split-branchless (split-branchless #x7a0 15)]
-      [maybe-merge-after-recv (merge-at-pc #x9e0)])]
+      [maybe-split-branchless (split-branchless #x778 15)]
+      [maybe-merge-after-recv (merge-at-pc #x9d0)])]
     [`(set-secret ,secret)
      (extend-hintdb
       common-hintdb
       [overapproximate-boot-pc (overapproximate-pc (R f1 c1))]
-      [maybe-split-branchless (split-branchless #x710 12)]
-      [maybe-merge-after-recv (merge-at-pc #x6fc)])]
+      [maybe-split-branchless (split-branchless #x6f0 12)]
+      [maybe-merge-after-recv (merge-at-pc #x6dc)])]
     [`(otp ,ctr)
      (extend-hintdb
       common-hintdb
       [overapproximate-boot-pc (overapproximate-pc (R f1 c1))]
-      [maybe-split-branchless (split-branchless #x85c 10)]
-      [maybe-merge-after-recv (merge-at-pc #x83c)]
+      [maybe-split-branchless (split-branchless #x840 10)]
+      [maybe-merge-after-recv (merge-at-pc #x824)]
       [handle-otp
        (let* ([arg1 (message->blocks (pad-message (hmac-sha1-arg1 (spec:state-secret f1) ctr)))]
               [arg2 (void)] ; compute later
@@ -96,13 +96,13 @@
                           stage
                           (symbolics imp))
                  (set! stage (add1 stage)))]
-              [(and (equal? cpu-pc (bv #x5a4 32)) (equal? cpu-state (bv #x40 8)))
+              [(and (equal? cpu-pc (bv #x584 32)) (equal? cpu-state (bv #x40 8)))
                ;; just before call to constant time mod 10^6
                (eprintf "just before call to constant time mod 10^6~n")
                (define hmac-output (imp-finalize imp))
                (define s (dt hmac-output))
                (replace (lens 'circuit 'wrapper.soc.cpu.cpuregs 10) s)]
-              [(and (equal? cpu-pc (bv #x944 32)) (not triggered-return-mod-10^6))
+              [(and (equal? cpu-pc (bv #x92c 32)) (not triggered-return-mod-10^6))
                (set! triggered-return-mod-10^6 #t) ; only once
                (eprintf "returned from constant time mod 10^6~n")
                ;; returned from mod 10^6
@@ -112,7 +112,7 @@
                (replace (lens 'circuit 'wrapper.soc.cpu.cpuregs 10) spec-otp)
                (subst (lens 'circuit 'wrapper.soc.cpu.cpuregs 10))
                (clear)]
-              [(and (equal? cpu-pc (bv #x94c 32)) (equal? cpu-state (bv #x20 8)))
+              [(and (equal? cpu-pc (bv #x934 32)) (equal? cpu-state (bv #x20 8)))
                (eprintf "returned from hotp")
                (remember (lens 'circuit 'wrapper.soc.cpu.cpuregs 8) 'hotp)])))]
       [finalize
@@ -142,7 +142,7 @@
        ;; concretizing
        (tactic
         (define ckt (lens-view (lens 'interpreter 'globals 'circuit) (get-state)))
-        (when (and (equal? (get-field ckt 'wrapper.soc.cpu.reg_pc) (bv #x940 32)))
+        (when (and (equal? (get-field ckt 'wrapper.soc.cpu.reg_pc) (bv #x928 32)))
           ;; replace secret that is in buf
           (eprintf "pc: ~v state: ~v, rewriting secret and merging~n" (get-field ckt 'wrapper.soc.cpu.reg_pc) (get-field ckt 'wrapper.soc.cpu.cpu_state))
           (define path (checker-state-pc (get-state)))

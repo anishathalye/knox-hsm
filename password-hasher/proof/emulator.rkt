@@ -36,11 +36,11 @@
   (let ([c (state-circuit (get))])
     (if (and
          (equal? (get-field c 'wrapper.pwrmgr_state) (bv #b10 2))
-         (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x474 32))
+         (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x448 32))
          (equal? (get-field c 'wrapper.soc.cpu.cpu_state) (bv #x02 8))
          (equal? (get-field c 'wrapper.soc.cpu.mem_state) (bv #b10 2)))
         (let ([fram (get-field c 'wrapper.soc.fram.fram)])
-          ;; simulator has fram initially hard-coded to 0, so active is 0, so secret is written into 1
+          ;; emulator has fram initially hard-coded to 0, so active is 0, so secret is written into 1
           (displayln "store triggered")
           (spec:set-secret
            (concat
@@ -54,19 +54,19 @@
   (let ([c (state-circuit (get))])
     (if (and
          (equal? (get-field c 'wrapper.pwrmgr_state) (bv #b10 2))
-         (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x514 32)) ; right after return from sha256_digest
+         (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x4ec 32)) ; right after return from sha256_digest
          (equal? (get-field c 'wrapper.soc.cpu.cpu_state) (bv #x20 8)))
         (let ([ram (get-field c 'wrapper.soc.ram.ram)])
           ;; compute hash
-          (let ([h (spec:get-hash (concat (swap32 (vector-ref ram 496))
+          (let ([h (spec:get-hash (concat (swap32 (vector-ref ram 492))
+                                          (swap32 (vector-ref ram 493))
+                                          (swap32 (vector-ref ram 494))
+                                          (swap32 (vector-ref ram 495))
+                                          (swap32 (vector-ref ram 496))
                                           (swap32 (vector-ref ram 497))
                                           (swap32 (vector-ref ram 498))
-                                          (swap32 (vector-ref ram 499))
-                                          (swap32 (vector-ref ram 500))
-                                          (swap32 (vector-ref ram 501))
-                                          (swap32 (vector-ref ram 502))
-                                          (swap32 (vector-ref ram 503))))])
-            ;; inject into sim circuit
+                                          (swap32 (vector-ref ram 499))))])
+            ;; inject into emulated circuit
             (set! (state (update-field c 'wrapper.soc.ram.ram
                                        (vector-set* ram (list 513 (swap32 (extract 255 224 h))
                                                               514 (swap32 (extract 223 192 h))

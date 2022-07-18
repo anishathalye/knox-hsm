@@ -35,8 +35,8 @@
       [post-tick done]
       [finalize done]
       [maybe-replace-and-merge-after-cases done] ; kind of annoying to figure out how to merge at this point, so don't bother
-      [maybe-split-branchless (split-branchless #x430 12)]
-      [maybe-merge-after-recv (merge-at-pc #x41c)])]
+      [maybe-split-branchless (split-branchless #x404 13)]
+      [maybe-merge-after-recv (merge-at-pc #x3f0)])]
     [`(get-hash ,msg)
      (define imp (imp-init (sha256-init) (pad-message (concat f1 msg))))
      (define (inject)
@@ -52,8 +52,8 @@
      (extend-hintdb
       common-hintdb
       [overapproximate-boot-pc (overapproximate-pc (R f1 c1))]
-      [maybe-split-branchless (split-branchless #x4d0 12)]
-      [maybe-merge-after-recv (merge-at-pc #x4bc)]
+      [maybe-split-branchless (split-branchless #x4ac 12)]
+      [maybe-merge-after-recv (merge-at-pc #x498)]
       [initial-inject
        (let ([triggered (box #f)])
          (tactic
@@ -97,15 +97,15 @@
        (tactic
         (define st (get-state))
         (define ckt (lens-view (lens 'interpreter 'globals 'circuit) st))
-        (when (and (equal? (get-field ckt 'wrapper.soc.cpu.reg_pc) (bv #x4f8 32)) (equal? (get-field ckt 'wrapper.soc.cpu.cpu_state) (bv #x20 8)))
+        (when (and (equal? (get-field ckt 'wrapper.soc.cpu.reg_pc) (bv #x4d4 32)) (equal? (get-field ckt 'wrapper.soc.cpu.cpu_state) (bv #x20 8)))
           (eprintf "pc: ~v state: ~v, rewriting secret and merging~n" (get-field ckt 'wrapper.soc.cpu.reg_pc) (get-field ckt 'wrapper.soc.cpu.cpu_state))
           (define path (checker-state-pc st))
           (eprintf "path condition: ~v~n" path)
-          (replace* (list (cons (lens 'circuit 'wrapper.soc.ram.ram 491) (swap32 (extract 159 128 f1)))
-                          (cons (lens 'circuit 'wrapper.soc.ram.ram 492) (swap32 (extract 127 96 f1)))
-                          (cons (lens 'circuit 'wrapper.soc.ram.ram 493) (swap32 (extract 95 64 f1)))
-                          (cons (lens 'circuit 'wrapper.soc.ram.ram 494) (swap32 (extract 63 32 f1)))
-                          (cons (lens 'circuit 'wrapper.soc.ram.ram 495) (swap32 (extract 31 0 f1))))
+          (replace* (list (cons (lens 'circuit 'wrapper.soc.ram.ram 487) (swap32 (extract 159 128 f1)))
+                          (cons (lens 'circuit 'wrapper.soc.ram.ram 488) (swap32 (extract 127 96 f1)))
+                          (cons (lens 'circuit 'wrapper.soc.ram.ram 489) (swap32 (extract 95 64 f1)))
+                          (cons (lens 'circuit 'wrapper.soc.ram.ram 490) (swap32 (extract 63 32 f1)))
+                          (cons (lens 'circuit 'wrapper.soc.ram.ram 491) (swap32 (extract 31 0 f1))))
                     #:use-pc #t)
           (overapproximate (lens 'circuit (list 'wrapper.soc.cpu.mem_wdata
                                                 (lens 'wrapper.soc.cpu.cpuregs (list 12 14 15)))))

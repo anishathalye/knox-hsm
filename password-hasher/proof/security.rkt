@@ -25,7 +25,7 @@
   (define cs (lens-view (lens 'circuit 'wrapper.soc.cpu.cpu_state) t))
   (define s (lens-view (lens 'emulator 'auxiliary 'circuit 'wrapper.soc.cpu.reg_pc) t))
   (define ss (lens-view (lens 'emulator 'auxiliary 'circuit 'wrapper.soc.cpu.cpu_state) t))
-  (printf "ckt: ~v ~v sim: ~v ~v\n" c cs s ss))
+  (printf "ckt: ~v ~v emu: ~v ~v\n" c cs s ss))
 
 (define (step-n! n)
   (unless (zero? n)
@@ -58,7 +58,7 @@
       (loop (add1 i)))))
 
 ;; insight: we actually don't care what's going on inside the UART,
-;; just that the value read by the circuit and the simulated circuit in
+;; just that the value read by the circuit and the emulated circuit in
 ;; uart_read is the same
 
 (define (match-abstract! l [name #f])
@@ -248,11 +248,11 @@
 (step-to-start-of-main!)
 
 (define cmd (step-past-uart-read! 'cmd))
-(step-until! (branch-at (bv #x564 32)) #t)
+(step-until! (branch-at (bv #x54c 32)) #t)
 ;; at first branch in main, is it a set-secret command?
 (cases*! (list (not (equal? (bvand (bv #xff 32) cmd) (bv 1 32)))))
 (concretize-branch!)
-(step-until! (branch-at (bv #x56c 32)) #t)
+(step-until! (branch-at (bv #x554 32)) #t)
 (cases*! (list (not (equal? (bvand (bv #xff 32) cmd) (bv 2 32))))) ;; get-hash or invalid?
 ;; invalid cmd
 (concretize-branch!)
@@ -266,7 +266,7 @@
             (printf "store, reading message[~a]~n" i)
             (step-past-uart-read! (format "message[~a]" i)))
           (range spec:MESSAGE-SIZE-BYTES))
-(step-until! (pc-is (bv #x4d0 32)))
+(step-until! (pc-is (bv #x4ac 32)))
 ;; do this before the case split, so this variable is shared between the branches
 (define secret (remember! (lens 'emulator 'oracle) 'secret))
 ;; "inverse abstraction function", so we don't have to separately
@@ -322,27 +322,26 @@
   (cases! (map (lambda (v) (equal? ax v)) (list (bv 0 32) (bv 1 32)))))
 ;; case active = x
 (concretize! (lens 'circuit 'wrapper.soc.cpu.cpuregs 12))
-(step-until! (pc-is (bv #x510 32)))
+(step-until! (pc-is (bv #x4e8 32)))
 ;; clean up stack contents
-(replace! (lens 'circuit 'wrapper.soc.ram.ram 491) (swap32 (extract 159 128 secret)))
-(replace! (lens 'circuit 'wrapper.soc.ram.ram 492) (swap32 (extract 127 96 secret)))
-(replace! (lens 'circuit 'wrapper.soc.ram.ram 493) (swap32 (extract 95 64 secret)))
-(replace! (lens 'circuit 'wrapper.soc.ram.ram 494) (swap32 (extract 63 32 secret)))
-(replace! (lens 'circuit 'wrapper.soc.ram.ram 495) (swap32 (extract 31 0 secret)))
+(replace! (lens 'circuit 'wrapper.soc.ram.ram 487) (swap32 (extract 159 128 secret)))
+(replace! (lens 'circuit 'wrapper.soc.ram.ram 488) (swap32 (extract 127 96 secret)))
+(replace! (lens 'circuit 'wrapper.soc.ram.ram 489) (swap32 (extract 95 64 secret)))
+(replace! (lens 'circuit 'wrapper.soc.ram.ram 490) (swap32 (extract 63 32 secret)))
+(replace! (lens 'circuit 'wrapper.soc.ram.ram 491) (swap32 (extract 31 0 secret)))
 ;; don't need pred now, we've already made use of the case split info,
 ;; and we can overapproximate it to allow for subsumption checks later to
 ;; work
 (overapproximate-predicate! #t)
 ;; clean up message a bit
-(match-abstract! (lens 'wrapper.soc.ram.ram 496) 'message0)
-(match-abstract! (lens 'wrapper.soc.ram.ram 497) 'message1)
-(match-abstract! (lens 'wrapper.soc.ram.ram 498) 'message2)
-(match-abstract! (lens 'wrapper.soc.ram.ram 499) 'message3)
-(match-abstract! (lens 'wrapper.soc.ram.ram 500) 'message4)
-(match-abstract! (lens 'wrapper.soc.ram.ram 501) 'message5)
-(match-abstract! (lens 'wrapper.soc.ram.ram 502) 'message6)
-(match-abstract! (lens 'wrapper.soc.ram.ram 503) 'message7)
-;; TODO probably want to overapproximate some stuff here, so we can relate back the active = !x case to here
+(match-abstract! (lens 'wrapper.soc.ram.ram 492) 'message0)
+(match-abstract! (lens 'wrapper.soc.ram.ram 493) 'message1)
+(match-abstract! (lens 'wrapper.soc.ram.ram 494) 'message2)
+(match-abstract! (lens 'wrapper.soc.ram.ram 495) 'message3)
+(match-abstract! (lens 'wrapper.soc.ram.ram 496) 'message4)
+(match-abstract! (lens 'wrapper.soc.ram.ram 497) 'message5)
+(match-abstract! (lens 'wrapper.soc.ram.ram 498) 'message6)
+(match-abstract! (lens 'wrapper.soc.ram.ram 499) 'message7)
 (overapproximate!
       (lens (list (lens 'circuit (list 'wrapper.soc.cpu.mem_wdata
                                        (lens 'wrapper.soc.cpu.cpuregs (list 14 15))))
@@ -359,14 +358,14 @@
   (let ([ram (lens-view (lens 'circuit 'wrapper.soc.ram.ram) (set-term (current)))])
     (pad-message (concat
                   secret
-                  (concat (swap32 (vector-ref ram 496))
+                  (concat (swap32 (vector-ref ram 492))
+                          (swap32 (vector-ref ram 493))
+                          (swap32 (vector-ref ram 494))
+                          (swap32 (vector-ref ram 495))
+                          (swap32 (vector-ref ram 496))
                           (swap32 (vector-ref ram 497))
                           (swap32 (vector-ref ram 498))
-                          (swap32 (vector-ref ram 499))
-                          (swap32 (vector-ref ram 500))
-                          (swap32 (vector-ref ram 501))
-                          (swap32 (vector-ref ram 502))
-                          (swap32 (vector-ref ram 503)))))))
+                          (swap32 (vector-ref ram 499)))))))
 (define imp (imp-init (sha256-init) block))
 (define (inject-circuit!)
   (racket/for
@@ -394,7 +393,7 @@
   ;; in the circuit/emulator where this isn't needed
   (subst! (lens 'circuit (list #rx"sha256\\.[a-h]" (lens 'wrapper.soc.sha256.w_mem vector-all-elements-lens))))
   (clear!)
-  ;; throw away sim state we don't care about; this makes a big
+  ;; throw away emulator state we don't care about; this makes a big
   ;; difference in helping us not slow down every cycle
   (overapproximate! (lens 'emulator 'auxiliary 'circuit
                                   (list #rx"sha256\\.[a-h]" (lens 'wrapper.soc.sha256.w_mem vector-all-elements-lens)))))
@@ -412,7 +411,7 @@
 (step!)
 (sync-overapprox-uart-recv!)
 ;; return from sha256_digest, where digest in RAM is populated
-(step-until! (pc-is (bv #x514 32)))
+(step-until! (pc-is (bv #x4ec 32)))
 (step-until! (state-is (bv #x08 8)))
 
 ;; okay, now we want to sync up the impl and spec
@@ -449,13 +448,13 @@
 
 ;; get hash, but case where active region is 1; proof via subsumption
 (concretize! (lens 'circuit 'wrapper.soc.cpu.cpuregs 12))
-(step-until! (pc-is (bv #x510 32)))
+(step-until! (pc-is (bv #x4e8 32)))
 ;; clean up stack contents, to match the thing we're going to be subsumed by (faster computation)
-(replace! (lens 'circuit 'wrapper.soc.ram.ram 491) (swap32 (extract 159 128 secret)))
-(replace! (lens 'circuit 'wrapper.soc.ram.ram 492) (swap32 (extract 127 96 secret)))
-(replace! (lens 'circuit 'wrapper.soc.ram.ram 493) (swap32 (extract 95 64 secret)))
-(replace! (lens 'circuit 'wrapper.soc.ram.ram 494) (swap32 (extract 63 32 secret)))
-(replace! (lens 'circuit 'wrapper.soc.ram.ram 495) (swap32 (extract 31 0 secret)))
+(replace! (lens 'circuit 'wrapper.soc.ram.ram 487) (swap32 (extract 159 128 secret)))
+(replace! (lens 'circuit 'wrapper.soc.ram.ram 488) (swap32 (extract 127 96 secret)))
+(replace! (lens 'circuit 'wrapper.soc.ram.ram 489) (swap32 (extract 95 64 secret)))
+(replace! (lens 'circuit 'wrapper.soc.ram.ram 490) (swap32 (extract 63 32 secret)))
+(replace! (lens 'circuit 'wrapper.soc.ram.ram 491) (swap32 (extract 31 0 secret)))
 ;; don't need pred now
 (overapproximate-predicate! #t)
 (overapproximate!
@@ -464,14 +463,14 @@
                   (lens 'emulator 'auxiliary 'circuit (list 'wrapper.soc.cpu.mem_wdata
                                                              (lens 'wrapper.soc.cpu.cpuregs (list 14 15)))))))
 ;; clean up message
-(match-abstract! (lens 'wrapper.soc.ram.ram 496) 'message0)
-(match-abstract! (lens 'wrapper.soc.ram.ram 497) 'message1)
-(match-abstract! (lens 'wrapper.soc.ram.ram 498) 'message2)
-(match-abstract! (lens 'wrapper.soc.ram.ram 499) 'message3)
-(match-abstract! (lens 'wrapper.soc.ram.ram 500) 'message4)
-(match-abstract! (lens 'wrapper.soc.ram.ram 501) 'message5)
-(match-abstract! (lens 'wrapper.soc.ram.ram 502) 'message6)
-(match-abstract! (lens 'wrapper.soc.ram.ram 503) 'message7)
+(match-abstract! (lens 'wrapper.soc.ram.ram 492) 'message0)
+(match-abstract! (lens 'wrapper.soc.ram.ram 493) 'message1)
+(match-abstract! (lens 'wrapper.soc.ram.ram 494) 'message2)
+(match-abstract! (lens 'wrapper.soc.ram.ram 495) 'message3)
+(match-abstract! (lens 'wrapper.soc.ram.ram 496) 'message4)
+(match-abstract! (lens 'wrapper.soc.ram.ram 497) 'message5)
+(match-abstract! (lens 'wrapper.soc.ram.ram 498) 'message6)
+(match-abstract! (lens 'wrapper.soc.ram.ram 499) 'message7)
 (subsumed! ready-to-hash-index) ; this works even without the replaces, but it's probably faster with replace above
 
 ;; store case
@@ -483,16 +482,16 @@
         (printf "store, reading secret[~a]~n" i)
         (step-past-uart-read! (format "secret[~a]" i)))
     (range spec:SECRET-SIZE-BYTES))
-(step-until! (pc-is (bv #x430 32))) ; step just past the seqz
-(let ([ax (lens-view (lens 'circuit 'wrapper.soc.cpu.cpuregs 12) (set-term (current)))])
+(step-until! (pc-is (bv #x404 32))) ; step just past the seqz
+(let ([ax (lens-view (lens 'circuit 'wrapper.soc.cpu.cpuregs 13) (set-term (current)))])
   (cases! (map (lambda (v) (equal? ax v)) (list (bv 0 32) (bv 1 32)))))
 ;; case active = x
-(concretize! (lens 'circuit 'wrapper.soc.cpu.cpuregs 12))
+(concretize! (lens 'circuit 'wrapper.soc.cpu.cpuregs 13))
 (step-past-uart-write!)
 (step-until! poweroff)
 (subsumed! 0)
 ;; case active = !x
-(concretize! (lens 'circuit 'wrapper.soc.cpu.cpuregs 12))
+(concretize! (lens 'circuit 'wrapper.soc.cpu.cpuregs 13))
 (step-past-uart-write!)
 (step-until! poweroff)
 (subsumed! 0)

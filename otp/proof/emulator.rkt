@@ -37,12 +37,12 @@
     (if (and
          (equal? (get-field c 'wrapper.pwrmgr_state) (bv #b10 2))
          (or
-          (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x810 32)) ; first instruction in do_get_otp
-          (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x778 32))) ; first instruction in audit
+          (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x7f0 32)) ; first instruction in do_get_otp
+          (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x758 32))) ; first instruction in audit
          (equal? (get-field c 'wrapper.soc.cpu.cpu_state) (bv #x20 8)))
         (let ([fram (get-field c 'wrapper.soc.fram.fram)]
               [ctr (spec:audit)])
-          ;; simulator has fram initially hard-coded to 0, so active is 0, so secret is written into 1
+          ;; emulator has fram initially hard-coded to 0, so active is 0, so secret is written into 1
           (displayln "audit triggered")
           (set! (state (update-field c 'wrapper.soc.fram.fram
                                      (vector-set* fram (list 8 (extract 31 0 ctr)
@@ -54,7 +54,7 @@
   (let ([c (state-circuit (get))])
     (if (and
          (equal? (get-field c 'wrapper.pwrmgr_state) (bv #b10 2))
-         (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x910 32)) ; at commit point
+         (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x8f8 32)) ; at commit point
          (equal? (get-field c 'wrapper.soc.cpu.cpu_state) (bv #x02 8))
          (equal? (get-field c 'wrapper.soc.cpu.mem_state) (bv #b10 2)))
         (let ([ram (get-field c 'wrapper.soc.ram.ram)])
@@ -68,7 +68,7 @@
   (let ([c (state-circuit (get))])
     (if (and
          (equal? (get-field c 'wrapper.pwrmgr_state) (bv #b10 2))
-         (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x510 32)) ; right at the start of hotp()
+         (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x4f0 32)) ; right at the start of hotp()
          (equal? (get-field c 'wrapper.soc.cpu.cpu_state) (bv #x20 8)))
         (let ([ram (get-field c 'wrapper.soc.ram.ram)])
           (set! (state (update-field c 'wrapper.soc.ram.ram
@@ -80,7 +80,7 @@
   (let ([c (state-circuit (get))])
     (if (and
          (equal? (get-field c 'wrapper.pwrmgr_state) (bv #b10 2))
-         (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x948 32)) ; right after mv s0,a0
+         (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x930 32)) ; right after mv s0,a0
          (equal? (get-field c 'wrapper.soc.cpu.cpu_state) (bv #x20 8)))
         (let ([cpuregs (get-field c 'wrapper.soc.cpu.cpuregs)])
           (set! (state (update-field c 'wrapper.soc.cpu.cpuregs
@@ -91,7 +91,7 @@
   (let ([c (state-circuit (get))])
     (if (and
          (equal? (get-field c 'wrapper.pwrmgr_state) (bv #b10 2))
-         (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x764 32)) ; at commit point
+         (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x744 32)) ; at commit point
          (equal? (get-field c 'wrapper.soc.cpu.cpu_state) (bv #x02 8))
          (equal? (get-field c 'wrapper.soc.cpu.mem_state) (bv #b10 2)))
         (let ([ram (get-field c 'wrapper.soc.ram.ram)])

@@ -54,7 +54,7 @@
   (let ([c (state-circuit (get))])
     (if (and
          (equal? (get-field c 'wrapper.pwrmgr_state) (bv #b10 2))
-         (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x1d4 32))
+         (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x1c8 32))
          (equal? (get-field c 'wrapper.soc.cpu.cpu_state) (bv #x02 8))
          (equal? (get-field c 'wrapper.soc.cpu.mem_state) (bv #b10 2)))
         (let ([a3 (vector-ref (get-field c 'wrapper.soc.cpu.cpuregs) 13)])
@@ -76,7 +76,7 @@
   (let ([c (state-circuit (get))])
     (if (and
          (equal? (get-field c 'wrapper.pwrmgr_state) (bv #b10 2))
-         (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x100 32))
+         (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #xfc 32))
          (equal? (get-field c 'wrapper.soc.cpu.cpu_state) (bv #x02 8))
          (equal? (get-field c 'wrapper.soc.cpu.mem_state) (bv #b10 2)))
         (let ([a5 (vector-ref (get-field c 'wrapper.soc.cpu.cpuregs) 15)])
@@ -90,7 +90,7 @@
   (let ([c (state-circuit (get))])
     (if (and
          (equal? (get-field c 'wrapper.pwrmgr_state) (bv #b10 2))
-         (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x2b8 32))
+         (equal? (get-field c 'wrapper.soc.cpu.reg_pc) (bv #x29c 32))
          (equal? (get-field c 'wrapper.soc.cpu.cpu_state) (bv #x02 8))
          (equal? (get-field c 'wrapper.soc.cpu.mem_state) (bv #b10 2)))
         (let ([s1 (vector-ref (get-field c 'wrapper.soc.cpu.cpuregs) 9)])

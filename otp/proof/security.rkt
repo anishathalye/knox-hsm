@@ -27,7 +27,7 @@
   (define cs (lens-view (lens 'circuit 'wrapper.soc.cpu.cpu_state) t))
   (define s (lens-view (lens 'emulator 'auxiliary 'circuit 'wrapper.soc.cpu.reg_pc) t))
   (define ss (lens-view (lens 'emulator 'auxiliary 'circuit 'wrapper.soc.cpu.cpu_state) t))
-  (printf "ckt: ~v ~v sim: ~v ~v\n" c cs s ss))
+  (printf "ckt: ~v ~v emu: ~v ~v\n" c cs s ss))
 
 (define (step-n! n)
   (unless (zero? n)
@@ -60,7 +60,7 @@
       (loop (add1 i)))))
 
 ;; insight: we actually don't care what's going on inside the UART,
-;; just that the value read by the circuit and the simulated circuit in
+;; just that the value read by the circuit and the emulated circuit in
 ;; uart_read is the same
 
 (define (match-abstract! l [name #f])
@@ -248,7 +248,7 @@
   (step-until! (pc-is (bv #x00000070 32)) #f)
 
   ;; proceed to right before reading the command
-  (step-until! (pc-is (bv #x9dc 32))))
+  (step-until! (pc-is (bv #x9cc 32))))
 
 ;; takes one goal, when cmd = 2 (OTP), and advances it to the point where hotp is about to be called
 ;; produces a single goal as output
@@ -259,7 +259,7 @@
               (step-past-uart-read! (format "ctr[~a]" i)))
             (range spec:CTR-SIZE-BYTES))
 
-  (step-until! (pc-is (bv #x83c 32))) ; advance just past the read loop
+  (step-until! (pc-is (bv #x824 32))) ; advance just past the read loop
   ;; clean up counter a bit; this is the one that is read in big-endian format (the c[8] array)
   ;; so the counter value is (concat (swap32 ctr0) (swap32 ctr1))
   ;; we do this before `cint` is computed
@@ -268,7 +268,7 @@
   (define ctr (concat (swap32 ctr0) (swap32 ctr1)))
 
   ;; going to do case analysis on which region is active, step just past the snez
-  (step-until! (pc-is (bv #x85c 32)))
+  (step-until! (pc-is (bv #x83c 32)))
   ;; do this before the case split, so this variable is shared between the branches
   (define secret (remember! (lens 'emulator 'oracle 'secret) 'secret))
   (define max-ctr (remember! (lens 'emulator 'oracle 'max-ctr) 'max-ctr))
@@ -336,7 +336,7 @@
           (if (not (bvzero? fram0))
               (extract 63 32 max-ctr)
               (vector-ref fram 17)) #:use-equalities #t)
-    ;; need to replace counter value that is in simulated circuit as well
+    ;; need to replace counter value that is in emulated circuit as well
     (replace! (lens 'emulator 'auxiliary 'circuit 'wrapper.soc.fram.fram 8)
           (extract 31 0 max-ctr) #:use-equalities #t)
     (replace! (lens 'emulator 'auxiliary 'circuit 'wrapper.soc.fram.fram 9)
@@ -358,7 +358,7 @@
     ;; the `if (ctr < max-ctr)` check happens by comparing two 32-bit words, so there are several branches
 
     ;; first comparison
-    (step-until! (branch-at (bv #x8d0 32)))
+    (step-until! (branch-at (bv #x8b8 32)))
     (let* ([t (set-term (current))]
            [regs (lens-view (lens 'circuit 'wrapper.soc.cpu.cpuregs) t)]
            [a5 (vector-ref regs 15)]
@@ -375,7 +375,7 @@
 
     ;; second bail out case, beq
     (concretize-branch!)
-    (step-until! (branch-at (bv #x8d4 32)))
+    (step-until! (branch-at (bv #x8bc 32)))
     (let* ([t (set-term (current))]
            [regs (lens-view (lens 'circuit 'wrapper.soc.cpu.cpuregs) t)]
            [a7 (vector-ref regs 17)]
@@ -384,9 +384,9 @@
 
     ;; top 32 bits are equal, check lower 32 bits; and we do the bail-out case first
     (concretize-branch!)
-    (step-until! (pc-is (bv #x9a0 32))) ; not sure why it reaches pc=0x9a0 / state=0x40 twice, we want the second one
+    (step-until! (pc-is (bv #x98c 32))) ; not sure why it reaches pc=0x98c / state=0x40 twice, we want the second one
     (step-until! (state-is (bv #x20 8)))
-    (step-until! (branch-at (bv #x9a0 32)))
+    (step-until! (branch-at (bv #x98c 32)))
     (let* ([t (set-term (current))]
            [regs (lens-view (lens 'circuit 'wrapper.soc.cpu.cpuregs) t)]
            [a0 (vector-ref regs 10)]
@@ -404,7 +404,7 @@
     ;; line up both cases, because both imply !(ctr < max-ctr), and merge them
     ;; line up on the 2nd sw after beq instruction, so more stuff lines up
     (concretize-branch!)
-    (step-until! (pc-is (bv #x8dc 32)))
+    (step-until! (pc-is (bv #x8c4 32)))
     (define sub-index (length (visited)))
     (overapproximate! (lens 'circuit 'wrapper.soc.cpu.cpuregs 15))
     (overapproximate! (lens 'emulator 'auxiliary 'circuit 'wrapper.soc.cpu.cpuregs 15))
@@ -417,7 +417,7 @@
     ;; now swap goals and merge it
     (switch-goal! 1)
     (concretize-branch!)
-    (step-until! (pc-is (bv #x8dc 32)))
+    (step-until! (pc-is (bv #x8c4 32)))
     (overapproximate! (lens 'circuit 'wrapper.soc.cpu.cpuregs 15))
     (overapproximate! (lens 'emulator 'auxiliary 'circuit 'wrapper.soc.cpu.cpuregs 15))
     (overapproximate-predicate! (&& case-pred not-ctr-lt-max-ctr))
@@ -436,11 +436,11 @@
     (replace! (lens 'circuit 'wrapper.soc.fram.fram (if is-active0 8 16)) (extract 31 0 max-ctr))
     (replace! (lens 'circuit 'wrapper.soc.fram.fram (if is-active0 9 17)) (extract 63 32 max-ctr))
     ;; now, go right before commit point, and clean up fram, so that (R f c) computes in Rosette
-    (step-until! (pc-is (bv #x910 32)))
+    (step-until! (pc-is (bv #x8f8 32)))
     (replace! (lens 'circuit 'wrapper.soc.fram.fram (if is-active0 16 8)) (swap32 ctr1))
     (replace! (lens 'circuit 'wrapper.soc.fram.fram (if is-active0 17 9)) (swap32 ctr0))
     ;; need to replace spec as well, it has a redundant ite (we know counter is less than ...)
-    (step-until! (pc-is (bv #x914 32)))
+    (step-until! (pc-is (bv #x8fc 32)))
     (step-until! (state-is (bv #x40 8)))
     (replace! (lens 'emulator 'oracle 'max-ctr) ctr)
     (concretize! (lens 'circuit 'wrapper.soc.fram.fram 0))
@@ -451,7 +451,7 @@
     (overapproximate-predicate! #t)
 
     ;; step until right before the call to hotp()
-    (step-until! (pc-is (bv #x940 32)))
+    (step-until! (pc-is (bv #x928 32)))
     ;; we are going to do subsumption here, so clean up all of fram
     (overapproximate! (lens 'circuit 'wrapper.soc.fram.fram 0))
     ;; clean up copied ctr
@@ -557,7 +557,7 @@
   (define hmac-output (imp-finalize imp))
 
   ;; proceed up until just before call to constant-time mod 10^6
-  (step-until! (pc-is (bv #x5a4 32)))
+  (step-until! (pc-is (bv #x584 32)))
 
   ;; at this point, the argument to the ct_mod1000000 is in register a0 (x10)
   (define s (dt hmac-output))
@@ -568,7 +568,7 @@
   ;; taking only ~ 50 seconds
 
   ;; return from hotp/ct_mod1000000
-  (step-until! (pc-is (bv #x944 32)))
+  (step-until! (pc-is (bv #x92c 32)))
   (define spec-otp (bvurem s (bv (expt 10 DIGITS) 32)))
   (define a0 (lens-view (lens 'circuit 'wrapper.soc.cpu.cpuregs 10) (set-term (current))))
 
@@ -577,7 +577,7 @@
   (clear!) ; no need to remember variables anymore
 
   ;; step one instruction past when emulator injects the HOTP value
-  (step-until! (pc-is (bv #x94c 32)))
+  (step-until! (pc-is (bv #x934 32)))
   ;; into s0 register
   (match-abstract! (lens 'wrapper.soc.cpu.cpuregs 8) 'hotp))
 
@@ -592,13 +592,13 @@
 
 (define (case-audit!)
   ;; step until right after snez
-  (step-until! (pc-is (bv #x7a0 32)))
+  (step-until! (pc-is (bv #x778 32)))
   (define active0 (bvzero? (lens-view (lens 'circuit 'wrapper.soc.fram.fram 0) (set-term (current)))))
   (cases! (list active0 (! active0)))
 
   (define (audit-active-case! is-active0)
     (concretize! (lens 'circuit 'wrapper.soc.cpu.cpuregs 15))
-    ;; make sim fram match
+    ;; make emulator fram match
     (let ([fram (lens-view (lens 'circuit 'wrapper.soc.fram.fram) (set-term (current)))])
       (replace! (lens 'emulator 'auxiliary 'circuit 'wrapper.soc.fram.fram 8) (vector-ref fram (if is-active0 8 16)))
       (replace! (lens 'emulator 'auxiliary 'circuit 'wrapper.soc.fram.fram 9) (vector-ref fram (if is-active0 9 17))))
@@ -618,7 +618,7 @@
             (range spec:SECRET-SIZE-BYTES))
 
   ;; clean up secret
-  (step-until! (pc-is (bv #x6fc 32)))
+  (step-until! (pc-is (bv #x6dc 32)))
   (define secret0 (match-abstract! (lens 'wrapper.soc.ram.ram 499) 'secret0))
   (define secret1 (match-abstract! (lens 'wrapper.soc.ram.ram 500) 'secret1))
   (define secret2 (match-abstract! (lens 'wrapper.soc.ram.ram 501) 'secret2))
@@ -626,7 +626,7 @@
   (define secret4 (match-abstract! (lens 'wrapper.soc.ram.ram 503) 'secret4))
 
   ;; step until right after snez
-  (step-until! (pc-is (bv #x710 32)))
+  (step-until! (pc-is (bv #x6f0 32)))
   (define active0 (bvzero? (lens-view (lens 'circuit 'wrapper.soc.fram.fram 0) (set-term (current)))))
   (cases! (list active0 (! active0)))
 
@@ -637,9 +637,9 @@
             (concat
              (vector-ref fram (if is-active0 9 17))
              (vector-ref fram (if is-active0 8 16)))))
-    (step-until! (pc-is (bv #x764 32)))
+    (step-until! (pc-is (bv #x744 32)))
     (concretize! (lens 'circuit 'wrapper.soc.cpu.cpuregs 15))
-    (step-until! (pc-is (bv #x768 32))) ; after the store, can forget the predicate
+    (step-until! (pc-is (bv #x748 32))) ; after the store, can forget the predicate
     (overapproximate-predicate! #t)
     (step-past-uart-write!)
     (step-until! poweroff)
@@ -655,7 +655,7 @@
 (define cmd (step-past-uart-read! 'cmd))
 
 ;; OTP?
-(step-until! (branch-at (bv #x9e4 32)) #t)
+(step-until! (branch-at (bv #x9d4 32)) #t)
 ;; at first branch in main, is it a otp command?
 (cases*! (list (equal? (bvand (bv #xff 32) cmd) (bv 2 32))))
 (concretize-branch!)
@@ -665,7 +665,7 @@
 ;; AUDIT?
 (concretize-branch!)
 (overapproximate-predicate! #t)
-(step-until! (branch-at (bv #x9ec 32)) #t)
+(step-until! (branch-at (bv #x9dc 32)) #t)
 ;; at second branch in main, is it a audit command?
 (cases*! (list (equal? (bvand (bv #xff 32) cmd) (bv 3 32))))
 (concretize-branch!)
@@ -675,7 +675,7 @@
 ;; SET-SECRET?
 (concretize-branch!)
 (overapproximate-predicate! #t)
-(step-until! (branch-at (bv #x9f4 32)) #t)
+(step-until! (branch-at (bv #x9e4 32)) #t)
 ;; at second branch in main, is it a set-secret command?
 (cases*! (list (equal? (bvand (bv #xff 32) cmd) (bv 1 32))))
 (concretize-branch!)
