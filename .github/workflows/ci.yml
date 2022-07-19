@@ -24,7 +24,6 @@ jobs:
       - uses: actions/checkout@v2
       - name: Pull Docker image
         run: docker pull anishathalye/knox:latest
-
       - name: Disable crashes and yield
         run: |
           sed -i 's/^\s*;;\s*\(#:without-\(crashes\|yield\)\).*$/\1 #t/' '${{ matrix.hsm }}/proof/correctness.rkt'
@@ -37,4 +36,22 @@ jobs:
         run: |
           docker run --rm -v "${PWD}/:/knox-hsm" -w "/knox-hsm/${{ matrix.hsm }}/proof" anishathalye/knox:latest /bin/bash -c "
             racket '${{ matrix.proof }}.rkt'
+          "
+  generate_bitstream:
+    strategy:
+      matrix:
+        hsm:
+          - otp
+          - password-hasher
+          - pin-protected-backup
+    name: Generate FPGA bitstream for ${{ matrix.hsm }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Pull Docker image
+        run: docker pull anishathalye/knox:latest
+      - name: Generate bitstream
+        run: |
+          docker run --rm -v "${PWD}/:/knox-hsm" -w "/knox-hsm/${{ matrix.hsm }}/impl" anishathalye/knox:latest /bin/bash -c "
+            make fpga.bin
           "
