@@ -122,8 +122,8 @@ tools could produce output incompatible with our proofs.
 We used the following tools (which are included in our Docker image):
 
 ```console
-$ gcc --version
-gcc (Ubuntu 11.2.0-19ubuntu1) 11.2.0
+$ riscv64-linux-gnu-gcc --version
+riscv64-linux-gnu-gcc (Ubuntu 11.2.0-16ubuntu1) 11.2.0
 
 $ yosys --version
 Yosys 0.19+20 (git sha1 a82eff2e2, clang 14.0.0-1ubuntu1 -fPIC -Os)
