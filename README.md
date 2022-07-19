@@ -109,6 +109,31 @@ If you're trying to run this on an iCE40 FPGA, you also need the following:
 - [icestorm]
 - [nextpnr-ice40]
 
+## Artifacts
+
+The proofs in this repo reason about post-compilation / post-synthesis HSMs: we
+compile the C/assembly code using GCC, "inline" the results into the circuit,
+and run the Yosys synthesis tool to produce the object that we reason about.
+The proofs have hard-coded references to specific memory addresses, register
+numbers, and circuit state elements. GCC and Yosys don't necessarily produce
+identical output between different versions, so different versions of these
+tools could produce output incompatible with our proofs.
+
+We used the following tools (which are included in our Docker image):
+
+```console
+$ gcc --version
+gcc (Ubuntu 11.2.0-19ubuntu1) 11.2.0
+
+$ yosys --version
+Yosys 0.19+20 (git sha1 a82eff2e2, clang 14.0.0-1ubuntu1 -fPIC -Os)
+```
+
+We also have an [archive][knox-hsm-artifacts] containing the outputs from the
+compiler (`.elf` and `.lst` files) and output of the synthesis tool (`.rkt`
+file), so you can run verification on these without having GCC or Yosys
+installed.
+
 ## Running on an FPGA
 
 For the case studies from the paper, you can run them on a Lattice iCE40 FPGA
@@ -154,3 +179,4 @@ helpful:
 [nextpnr-ice40]: https://github.com/YosysHQ/nextpnr
 [iCEBreaker]: https://1bitsquared.com/products/icebreaker
 [Docker image]: https://hub.docker.com/repository/docker/anishathalye/knox
+[knox-hsm-artifacts]: https://github.com/anishathalye/knox-hsm/releases/download/v1.0.1/knox-hsm-artifacts.tar.gz
