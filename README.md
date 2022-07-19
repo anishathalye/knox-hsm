@@ -1,4 +1,4 @@
-# Knox HSMs
+# Knox HSMs [![Build Status](https://github.com/anishathalye/knox-hsm/workflows/CI/badge.svg)](https://github.com/anishathalye/knox-hsm/actions?query=workflow%3ACI)
 
 Circuits and hardware security modules (HSMs) formally verified with [Knox].
 
