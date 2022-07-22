@@ -31,4 +31,5 @@ class PasswordHasher:
         if len(message) != 32:
             raise ValueError("message must be exactly 32 bytes")
         self._ser.write(b"\x02" + message)
-        return self._ser.read(32).hex()
+        digest: bytes = self._ser.read(32)
+        return digest.hex()

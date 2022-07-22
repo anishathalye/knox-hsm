@@ -27,14 +27,14 @@ class PinProtectedBackup:
         if slot >= NENTRY:
             return False
         self._ser.write(b"\x01" + struct.pack(">B", slot))
-        valid = self._ser.read(1)
+        valid: bytes = self._ser.read(1)
         return valid != b"\x00"
 
     def delete(self, slot: int) -> bool:
         if slot >= NENTRY:
             return False
         self._ser.write(b"\x02" + struct.pack(">B", slot))
-        was_valid = self._ser.read(1)
+        was_valid: bytes = self._ser.read(1)
         return was_valid != b"\x00"
 
     def store(self, slot: int, pin: bytes, data: bytes) -> bool:
@@ -45,7 +45,7 @@ class PinProtectedBackup:
         if slot >= NENTRY:
             return False
         self._ser.write(b"\x03" + struct.pack(">B", slot) + pin + data)
-        ok = self._ser.read(1)
+        ok: bytes = self._ser.read(1)
         return ok != b"\x00"
 
     def retrieve(self, slot: int, pin: bytes) -> Optional[bytes]:
@@ -54,7 +54,8 @@ class PinProtectedBackup:
         if slot >= NENTRY:
             return None
         self._ser.write(b"\x04" + struct.pack(">B", slot) + pin)
-        status = self._ser.read(1)
+        status: bytes = self._ser.read(1)
         if status != b"\x03":
             return None
-        return self._ser.read(16)
+        data: bytes = self._ser.read(16)
+        return data

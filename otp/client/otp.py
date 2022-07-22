@@ -28,8 +28,9 @@ class OTP:
 
     def audit(self) -> int:
         self._ser.write(b"\x03")
-        c = self._ser.read(8)
-        return struct.unpack(">Q", c)[0]
+        c_raw: bytes = self._ser.read(8)
+        c: int = struct.unpack(">Q", c_raw)[0]
+        return c
 
     def otp(self, c: int) -> str:
         c_enc = struct.pack(">Q", c)
