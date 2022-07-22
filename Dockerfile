@@ -71,6 +71,8 @@ RUN raco pkg install --no-docs --batch --auto https://github.com/anishathalye/kn
 
 RUN pip3 install bin2coe
 
+RUN pip3 install pyserial
+
 COPY --from=build-yosys /usr/local/bin/* /usr/local/bin/
 COPY --from=build-yosys /usr/local/share/yosys/ /usr/local/share/yosys/
 COPY --from=build-icestorm-nextpnr /usr/local/bin/* /usr/local/bin/

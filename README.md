@@ -111,6 +111,10 @@ If you're trying to run this on an iCE40 FPGA, you also need the following:
 - [icestorm]
 - [nextpnr-ice40]
 
+If you want to run the client libraries, you need:
+
+- [pySerial]
+
 ## Artifacts
 
 The proofs in this repo reason about post-compilation / post-synthesis HSMs: we
@@ -182,3 +186,4 @@ helpful:
 [iCEBreaker]: https://1bitsquared.com/products/icebreaker
 [Docker image]: https://hub.docker.com/repository/docker/anishathalye/knox
 [knox-hsm-artifacts]: https://github.com/anishathalye/knox-hsm/releases/download/v1.0.1/knox-hsm-artifacts.tar.gz
+[pySerial]: https://github.com/pyserial/pyserial
