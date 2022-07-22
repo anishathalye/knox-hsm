@@ -55,3 +55,19 @@ jobs:
           docker run --rm -v "${PWD}/:/knox-hsm" -w "/knox-hsm/${{ matrix.hsm }}/impl" anishathalye/knox:latest /bin/bash -c "
             make fpga.bin
           "
+  typecheck:
+    name: Type check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - run: |
+          python -m pip install --upgrade pip
+          pip install mypy
+      - run: mypy .
+  fmt:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: psf/black@stable

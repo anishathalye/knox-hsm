@@ -80,6 +80,8 @@ include the specs (`spec/spec.rkt`) and emulators (`proof/emulator.rkt`).
     - `security.rkt`: the security proof; run this with `racket security.rkt`.
       For development, adding the `#:skip-final-check #t` keyword at the top
       will enable debugging security proofs in the Racket REPL.
+- `client/`: contains client libraries (only for the three case studies from
+  the paper).
 
 ## Docker image
 
