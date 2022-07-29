@@ -13,7 +13,7 @@
 
 (require
  knox/correctness/hint
- (except-in rosutil concretize overapproximate)
+ rosutil
  (except-in rosette/safe result-state result-value result?)
  racket/match)
 
@@ -22,10 +22,10 @@
    (define s (get-state))
    (println (lens-view (lens 'interpreter-state 'globals 'circuit) s))))
 (define hint-concretize
-  (concretize (lens 'circuit (field-filter/or "output_valid" "state" "search_index" "store_pass")) #:use-pc #t))
+  (concretize! (lens 'circuit (field-filter/or "output_valid" "state" "search_index" "store_pass")) #:use-pc #t))
 
 (define (case-split* splits)
-  (case-split
+  (case-split!
    (let loop ([acc '()]
               [ps splits]
               [pc #t])

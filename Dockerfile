@@ -67,11 +67,11 @@ RUN wget https://download.racket-lang.org/installers/8.5/racket-8.5-x86_64-linux
     && sh racket-8.5-x86_64-linux-cs.sh --create-dir --unix-style --dest /usr/ \
     && rm racket-8.5-x86_64-linux-cs.sh
 
-RUN raco pkg install --no-docs --batch --auto https://github.com/anishathalye/knox.git
-
 RUN pip3 install bin2coe
 
 RUN pip3 install pyserial
+
+RUN raco pkg install --no-docs --batch --auto --checksum v1.0.1 https://github.com/anishathalye/knox.git
 
 COPY --from=build-yosys /usr/local/bin/* /usr/local/bin/
 COPY --from=build-yosys /usr/local/share/yosys/ /usr/local/share/yosys/
