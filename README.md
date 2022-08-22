@@ -47,6 +47,13 @@ C/assembly as well. All communicate over UART.
   example uses a constant-time implementation, so we don't need a leakage
   specification. Unlike the above example, this doesn't require hints for the
   functional correctness proof.
+- **fifo1**: a 1-element FIFO. Functional correctness ensures that push/pop
+  work correctly, and physical equivalence ensures that previously stored data
+  is not leaked.
+- **fifo**: a 3-element FIFO implemented using a circular buffer. Functional
+  correctness ensures that push/peek/pop work correctly, and physical
+  equivalence ensures that previously stored data is not leaked by the
+  interface, even though the circular buffer does not zero out old data.
 
 ## Organization and use
 

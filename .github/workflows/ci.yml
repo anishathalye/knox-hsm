@@ -11,6 +11,8 @@ jobs:
         hsm:
           - adder
           - counter
+          - fifo
+          - fifo1
           - lockbox
           - multi-lockbox-leak
           - multi-lockbox-pad

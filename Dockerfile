@@ -71,7 +71,7 @@ RUN pip3 install bin2coe
 
 RUN pip3 install pyserial
 
-RUN raco pkg install --no-docs --batch --auto --checksum v1.0.1 https://github.com/anishathalye/knox.git
+RUN raco pkg install --no-docs --batch --auto --checksum v1.0.4 https://github.com/anishathalye/knox.git
 
 COPY --from=build-yosys /usr/local/bin/* /usr/local/bin/
 COPY --from=build-yosys /usr/local/share/yosys/ /usr/local/share/yosys/
