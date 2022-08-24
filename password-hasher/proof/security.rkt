@@ -274,7 +274,7 @@
 ;;
 ;; we have also very carefully written this in conjunction with AbsF so that
 ;; (R f ci) computes in Rosette to #t, rather than requiring a solver query
-;; (on every step, for checking the crash condition)
+;; (on every step, for checking the recovery condition)
 (let ([fram (lens-view (lens 'circuit 'wrapper.soc.fram.fram) (set-term (current)))])
   (replace! (lens 'circuit 'wrapper.soc.fram.fram 1)
         (if (bvzero? (vector-ref fram 0))
