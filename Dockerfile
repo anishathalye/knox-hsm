@@ -37,7 +37,7 @@ RUN apt-get update \
 
 FROM build-deps AS build-yosys
 
-RUN git clone https://github.com/YosysHQ/yosys.git \
+RUN git clone -b yosys-0.21 https://github.com/YosysHQ/yosys.git \
     && cd yosys \
     && echo >>Makefile.conf "ENABLE_TCL := 0" \
     && echo >>Makefile.conf "ENABLE_GLOB := 0" \
@@ -50,13 +50,15 @@ RUN git clone https://github.com/YosysHQ/yosys.git \
 
 FROM build-deps AS build-icestorm-nextpnr
 
-RUN git clone https://github.com/YosysHQ/icestorm.git \
+RUN git clone -n https://github.com/YosysHQ/icestorm.git \
     && cd icestorm \
+    && git checkout 2bc541743ada3542c6da36a50e66303b9cbd2059 \
     && make -j$(nproc) \
     && make install
 
-RUN git clone https://github.com/YosysHQ/nextpnr.git \
+RUN git clone -n https://github.com/YosysHQ/nextpnr.git \
     && cd nextpnr \
+    && git checkout 664cec54b92844745e21a4e86dcf8e3cca09d781 \
     && cmake . -DARCH=ice40 -DICESTORM_INSTALL_PREFIX=/usr/local \
     && make -j$(nproc) \
     && make install
@@ -71,7 +73,7 @@ RUN pip3 install bin2coe
 
 RUN pip3 install pyserial
 
-RUN raco pkg install --no-docs --batch --auto --checksum v1.0.4 https://github.com/anishathalye/knox.git
+RUN raco pkg install --no-docs --batch --auto --checksum v1.0.5 https://github.com/anishathalye/knox.git
 
 COPY --from=build-yosys /usr/local/bin/* /usr/local/bin/
 COPY --from=build-yosys /usr/local/share/yosys/ /usr/local/share/yosys/
