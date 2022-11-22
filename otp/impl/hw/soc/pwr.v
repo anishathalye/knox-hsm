@@ -14,9 +14,6 @@ module pwr #(
     output reg poweroff_rq
 );
 
-// layout:
-// ADDR -- GPIO write register
-
 assign pwr_sel = mem_valid && (mem_addr == ADDR);
 // always ready, because we handle everything in a single cycle
 assign pwr_ready = 1;
