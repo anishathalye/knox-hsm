@@ -16,7 +16,7 @@
 
 ;; gives spec state corresponding to a circuit state
 (define (AbsF ci)
-  ;; sizeof(struct entry) == 40 bytes, which is 10 entries in the vector (of 32-bit words)
+  ;; sizeof(struct entry) == 24 bytes, which is 6 entries in the vector (of 32-bit words)
   (define fram (get-field ci 'wrapper.soc.fram.fram))
   (define (Abs1 slot)
     (define idx (* slot 6))
