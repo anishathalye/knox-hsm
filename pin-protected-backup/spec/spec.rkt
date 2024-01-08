@@ -38,7 +38,7 @@
   (define valid (fresh-symbolic 'valid boolean?))
   (if valid
       (entry
-       #f
+       #t
        (fresh-symbolic 'bad-guesses (bitvector 8))
        (fresh-symbolic 'pin (bitvector PIN-LENGTH))
        (fresh-symbolic 'data (bitvector DATA-SIZE)))

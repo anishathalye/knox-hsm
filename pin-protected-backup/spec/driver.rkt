@@ -134,7 +134,7 @@
   (send-byte slot))
 
 (define (wait-and-return value)
-  (tick-n 50) ; to give circuit time to power off
+  (tick-n 100) ; to give circuit time to power off
   value)
 
 (define (status slot)
