@@ -72,6 +72,5 @@ SECTIONS
     /DISCARD/ : {
         *(.comment)
         *(.riscv.attributes)
-        *(.debug_*)
     }
 }
