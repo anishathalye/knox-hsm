@@ -20,7 +20,7 @@
 (define debug
   (tactic
    (define s (get-state))
-   (println (lens-view (lens 'interpreter-state 'globals 'circuit) s))))
+   (println (lens-view (lens 'interpreter 'globals 'circuit) s))))
 (define hint-concretize
   (concretize! (lens 'circuit (field-filter/or "output_valid" "state" "search_index" "store_pass")) #:use-pc #t))
 
