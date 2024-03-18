@@ -27,6 +27,11 @@ C/assembly as well. All communicate over UART.
   correctly, and physical equivalence (security) ensures that the circuit,
   among other things, doesn't leak past inputs to the counter, only revealing
   the current running total.
+- **counter-picorv32**: a circuit that implements the same exact spec as the
+  saturating counter above but using C code running on a CPU. The host-HSM
+  interface is also different (UART), so the driver is different than the
+  simple counter circuit. This example is the simplest example in this repo of
+  an HSM with a CPU.
 - **adder**: a simple circuit that adds two numbers together. A driver sends
   one number at a time, yielding in between, demonstrating support for
   nondeterminism in Knox. Functional correctness ensures that the numbers are
