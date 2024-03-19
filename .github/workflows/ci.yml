@@ -11,6 +11,7 @@ jobs:
         hsm:
           - adder
           - counter
+          - counter-picorv32
           - fifo
           - fifo1
           - lockbox
